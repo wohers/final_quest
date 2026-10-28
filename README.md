@@ -16,7 +16,7 @@
 4. Запустите игру командой:
 
 ```bash
-python game.py
+python qwest.py
 ```
 
 ## 🎮 Геймплей
