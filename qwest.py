@@ -1,39 +1,77 @@
-def show_status(health, attempts, coins, inventory):
-    print("\n=== ТВОИ ХАРАКТЕРИСТИКИ ===")
-    print("Здоровье:", health)
-    print("Попытки:", attempts)
-    print("Коины:", coins)
-    print("Инвентарь:", inventory)
+def check_email(email):
+    if "@" in email and "." in email:
+        return True
+    return False
 
+def check_password(password, password2):
+    if password == password2 and len(password) >= 6:
+        return True
+    return False
+
+def show_status(player):
+    print("\n=== ТВОИ ХАРАКТЕРИСТИКИ ===")
+    print("Здоровье:", player["health"])
+    print("Попытки:", player["attempts"])
+    print("Коины:", player["coins"])
+    print("Инвентарь:", player["inventory"])
+
+def register():
+    print("РЕГИСТРАЦИЯ ИГРОКА")
+
+    email = input("Введите почту: ").strip()
+
+    while not check_email(email):
+        print("Неверный email")
+        email = input("Введите почту: ").strip()
+
+    password = input("Придумайте пароль: ")
+    password2 = input("Повторите пароль: ")
+
+    while not check_password(password, password2):
+        print("Пароли не совпадают, или короче 6 символов")
+        password = input("Придумайте пароль: ")
+        password2 = input("Повторите пароль: ")
+
+    print("Игрок успешко зарегестрирован")
+
+    player = {
+        "email": email,
+        "health":100,
+        "coins": 50,
+        "attempts":5,
+        "inventory":[]
+    }
+    return player
 
 def start():
     print("\nТы оказался в заброшенном доме.")
     print("1. Пойти налево")
     print("2. Пойти направо")
     print("3. Отдохнуть")
-    print("4. Выйти из игры")
+    print("4. Посмотреть характеристики")
+    print("5. Выйти из игры")
 
-    choice = input("Твой выбор: ").lower().strip()
+    choice = input("Твой выбор: ").strip()
     return choice
 
 
-def left_room(health, coins, inventory):
+def left_room(player):
     print("\nТы зашел в комнату.")
     print("1. Открыть шкаф")
     print("2. Осмотреть стол")
     print("3. Вернуться назад")
 
-    choice = input("Твой выбор: ")
+    choice = input("Твой выбор: ").strip()
 
     if choice == "1":
-        if inventory == "Ключ найден":
+        if "Ключ" in player["inventory"]:
             print("Шкаф пустой.")
         else:
             print("Ты нашел ключ!")
-            inventory = "Ключ найден"
+            player["inventory"].append("Ключ")
 
     elif choice == "2":
-        coins += 10
+        player["coins"] += 10
         print("Ты нашел 10 коинов!")
 
     elif choice == "3":
@@ -41,29 +79,31 @@ def left_room(health, coins, inventory):
 
     else:
         print("Неверный выбор.")
-        health -= 10
+        player["health"] -= 10
         print("Ты потерял 10 здоровья.")
 
-    return health, coins, inventory
 
-
-def right_room(health, attempts, coins, inventory):
+def right_room(player):
     print("\nТы подошел к выходной двери.")
     print("1. Попробовать открыть дверь")
     print("2. Вернуться назад")
 
-    choice = input("Твой выбор: ")
+    choice = input("Твой выбор: ").strip()
 
     if choice == "1":
-        attempts -= 1
+        if player["attempts"] <= 0:
+            print("Попытки закончились!")
+            return False
 
-        if inventory == "Ключ найден":
+        player["attempts"] -= 1
+
+        if "Ключ" in player["inventory"]:
             print("Ты открыл дверь ключом!")
             print("ПОБЕДА!")
-            return health, attempts, coins, inventory, True
+            return True
 
         else:
-            health -= 20
+            player["health"] -= 20
             print("Дверь заперта! Ты потерял 20 здоровья.")
             print("Найди ключ в комнате.")
 
@@ -73,68 +113,64 @@ def right_room(health, attempts, coins, inventory):
     else:
         print("Неверный выбор.")
 
-    return health, attempts, coins, inventory, False
+    return False
 
-
-def rest(health, coins):
+def rest(player):
     print("\nТы нашел место для отдыха.")
 
-    if coins >= 10:
-        coins -= 10
-        health += 20
+    if player["coins"] >= 10:
+        player["coins"] -= 10
+        player["health"] += 20
 
-        if health > 100:
-            health = 100
+        if player["health"] > 100:
+            player["health"] = 100
 
         print("Ты восстановил 20 здоровья за 10 коинов!")
     else:
         print("Недостаточно коинов. Нужно 10.")
 
-    return health, coins
+def game():
+    player = register()
+    playing = True
+
+    print("\n=== ЗАБРОШЕННЫЙ ДОМ ===")
+    print("Найди ключ и выберись наружу!")
+
+    while playing and player["health"] > 0 and player["attempts"] > 0:
+        show_status(player)
+        choice = start()
+
+        if choice == "1":
+            left_room(player)
+
+        elif choice == "2":
+            won = right_room(player)
+
+            if won:
+                print("Ты успешно сбежал из дома!")
+                playing = False
+
+        elif choice == "3":
+            rest(player)
+
+        elif choice == "4":
+            show_status(player)
+
+        elif choice == "5":
+            print("Ты вышел из игры.")
+            playing = False
+
+        else:
+            print("Неверный выбор.")
+
+    if player["health"] <= 0:
+        print("\nЗдоровье закончилось. Ты проиграл!")
+
+    elif player["attempts"] <= 0 and playing:
+        print("\nПопытки закончились. Ты проиграл!")
+
+    print("\nИгра завершена!")
+    show_status(player)
 
 
-health = 100
-attempts = 5
-coins = 0
-inventory = "Пусто"
-game = True
-
-print("=== ЗАБРОШЕННЫЙ ДОМ ===")
-print("Найди ключ и выберись наружу!")
-
-while game and health > 0 and attempts > 0:
-    show_status(health, attempts, coins, inventory)
-
-    choice = start()
-
-    if choice == "1":
-        health, coins, inventory = left_room(
-            health, coins, inventory
-        )
-
-    elif choice == "2":
-        health, attempts, coins, inventory, won = right_room(
-            health, attempts, coins, inventory
-        )
-
-        if won:
-            print("Ты успешно сбежал из дома!")
-            game = False
-
-    elif choice == "3":
-        health, coins = rest(health, coins)
-
-    elif choice == "4":
-        print("Ты вышел из игры.")
-        game = False
-
-    else:
-        print("Неверный выбор.")
-
-if health <= 0:
-    print("\nЗдоровье закончилось. Ты проиграл!")
-
-elif attempts <= 0 and game:
-    print("\nПопытки закончились. Ты проиграл!")
-
-print("Игра завершена!")
+game()
