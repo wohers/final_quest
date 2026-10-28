@@ -18,7 +18,6 @@
 ```bash
 python qwest.py
 ```
-im a gay
 
 ## 🎮 Геймплей
 
